@@ -53,17 +53,18 @@ public class MainActivity extends Activity {
 
 		loadInputFile();
 		createTodayStringkey();
-		updateDateSearch();
+//		updateDateSearch();
 		Button dateTo = (Button) findViewById(R.id.dateToSearch);
+		dateTo.setText(String.format("GIORNO: %s", dateForSearch));
 		View finder =  findViewById(R.id.finder);
 		retrieveDate(dateTo);
 		findPharmacy(finder);
 	}
 
-	private void updateDateSearch() {
-		TextView today = (TextView) findViewById(R.id.daySearch);
-		today.setText("GIORNO RICERCA: " + dateForSearch);
-	}
+//	private void updateDateSearch() {
+//		TextView today = (TextView) findViewById(R.id.daySearch);
+//		today.setText("GIORNO RICERCA: " + dateForSearch);
+//	}
 
 	private void findPharmacy(View finder) {
 		finder.setOnClickListener(new View.OnClickListener() {
@@ -108,12 +109,9 @@ public class MainActivity extends Activity {
 			}
 
 			private void showMessageError(Context context) {
-				AlertDialog alertDialog = new AlertDialog.Builder(context)
-						.create();
+				AlertDialog alertDialog = new AlertDialog.Builder(context).create();
 				alertDialog.setTitle("DATA NON VALIDA");
-				alertDialog
-						.setMessage("INTERVALLO DATA VALIDO: 01/01/2014 - 31/12/2014");
-
+				alertDialog.setMessage("INTERVALLO DATA VALIDO: 01/01/2015 - 30/11/2015");
 				alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog,
@@ -191,7 +189,8 @@ public class MainActivity extends Activity {
 			else
 				month = "" + mMonth;
 			dateForSearch = String.format("%s/%s/%s", day, month, mYear);
-			updateDateSearch();
+			Button dateTo = (Button) findViewById(R.id.dateToSearch);
+			dateTo.setText(String.format("GIORNO: %s", dateForSearch));
 		}
 	};
 

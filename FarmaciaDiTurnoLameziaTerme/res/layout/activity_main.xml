@@ -48,11 +48,10 @@
 	        android:layout_height="wrap_content"
 	        android:layout_marginBottom="2dp"
 	        android:background="@drawable/glossy_button_blank_green_rectangle"
-	        android:text="@string/chooseDate"
 	        android:textAppearance="?android:attr/textAppearanceMedium"
 	        android:textStyle="bold" />
 
-<!-- --> 	    	    
+<!-- 	    	    
 		<TextView
 		    android:id="@+id/daySearch"
 		    android:layout_width="match_parent"
@@ -62,7 +61,7 @@
 		    android:gravity="center"
 		    android:textAppearance="?android:attr/textAppearanceMedium"
 		    android:textStyle="bold" />
-		    
+--> 		    
  		    
 				
 	    <Button
