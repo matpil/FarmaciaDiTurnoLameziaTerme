@@ -1,16 +1,11 @@
 package com.matpil.farmaciaditurno;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.StringTokenizer;
+import java.util.Map;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -19,27 +14,34 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.matpil.farmaciaditurno.adapter.FarmaciaAdapter;
 import com.matpil.farmaciaditurno.model.Farmacia;
 import com.matpil.farmaciaditurno.model.Schedule;
+import com.matpil.farmaciaditurno.source.InputDataSource;
 
 public class MainActivity extends Activity {
 
-	private HashMap<String, Schedule> master = null;
+	private Map<String, Schedule> master = null;
 	private List<Farmacia> farmacie = null;
 	private String dateForSearch = null;
 	protected int mYear;
 	protected int mMonth;
 	protected int mDay;
-	
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
@@ -53,18 +55,13 @@ public class MainActivity extends Activity {
 
 		loadInputFile();
 		createTodayStringkey();
-//		updateDateSearch();
+		// updateDateSearch();
 		Button dateTo = (Button) findViewById(R.id.dateToSearch);
 		dateTo.setText(String.format("GIORNO: %s", dateForSearch));
-		View finder =  findViewById(R.id.finder);
+		View finder = findViewById(R.id.finder);
 		retrieveDate(dateTo);
 		findPharmacy(finder);
 	}
-
-//	private void updateDateSearch() {
-//		TextView today = (TextView) findViewById(R.id.daySearch);
-//		today.setText("GIORNO RICERCA: " + dateForSearch);
-//	}
 
 	private void findPharmacy(View finder) {
 		finder.setOnClickListener(new View.OnClickListener() {
@@ -76,34 +73,28 @@ public class MainActivity extends Activity {
 				if (s == null) {
 					showMessageError(v.getContext());
 				} else {
-					List<Farmacia> festivi = s.getFestivi();
-					List<Farmacia> notturno = s.getNotturno();
-					findViewById(R.id.LinearLayout2).setVisibility(TextView.VISIBLE);
-					if (festivi.isEmpty() && notturno.isEmpty()) {
-						TextView message = (TextView) findViewById(R.id.notturno);
-						message.setText("NESSUNA FARMACIA APERTA TROVATA");
-						message.setVisibility(TextView.VISIBLE);
-					}
-					if (!notturno.isEmpty()) {
-						Farmacia pharm = notturno.get(0);
-						TextView message = (TextView) findViewById(R.id.notturno);
-						message.setText("NOTTURNO: " + pharm.getName());
-						message.setVisibility(TextView.VISIBLE);
-						showPharmDetail(message, pharm);
-					}
-					if (!festivi.isEmpty()) {
-						Farmacia fest1 = festivi.get(0);
-						TextView festivo1 = (TextView) findViewById(R.id.festivo1);
-						festivo1.setText("FESTIVO: " + fest1.getName());
-						festivo1.setVisibility(TextView.VISIBLE);
-						showPharmDetail(festivo1, fest1);
-						if (festivi.size() == 2) {
-							Farmacia fest2 = festivi.get(1);
-							TextView festivo2 = (TextView) findViewById(R.id.festivo2);
-							festivo2.setText("FESTIVO: " + fest2.getName());
-							festivo2.setVisibility(TextView.VISIBLE);
-							showPharmDetail(festivo2, fest2);
-						}
+					// List<Farmacia> festivi = s.getFestivi();
+					// final List<Farmacia> notturno = s.getNotturno();
+					final Map<String, Farmacia> schedule = s.getSchedule();
+					findViewById(R.id.LinearLayoutList).setVisibility(TextView.VISIBLE);
+					if (schedule.isEmpty()) {
+						Toast.makeText(v.getContext(), "NESSUNA FARMACIA APERTA TROVATA", Toast.LENGTH_LONG).show();
+					} else {
+						final ListView lView = (ListView) findViewById(R.id.listView);
+						FarmaciaAdapter fAdapter = new FarmaciaAdapter(v.getContext(), schedule);
+						lView.setAdapter(fAdapter);
+						lView.setVisibility(ListView.VISIBLE);
+						lView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+							@Override
+							public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+								@SuppressWarnings("unchecked")
+								Map.Entry<String, Farmacia> entry = (Map.Entry<String, Farmacia>) parent.getItemAtPosition(position);
+								Farmacia farmacia = entry.getValue();
+								showPharmInfo(farmacia);
+							}
+
+						});
 					}
 				}
 			}
@@ -112,29 +103,69 @@ public class MainActivity extends Activity {
 				AlertDialog alertDialog = new AlertDialog.Builder(context).create();
 				alertDialog.setTitle("DATA NON VALIDA");
 				alertDialog.setMessage("INTERVALLO DATA VALIDO: 01/01/2015 - 30/11/2015");
-				alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
-								return;
-							}
-						});
+				alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						return;
+					}
+				});
 				alertDialog.show();
 			}
 		});
 	}
 
+	private void showPharmInfo(final Farmacia pharm) {
+		int idx = farmacie.indexOf(pharm);
+		if (idx > -1) {
+			findViewById(R.id.LinearLayoutMaps).setVisibility(TextView.VISIBLE);
+			final String address = farmacie.get(idx).getWay();
+			final String phone = farmacie.get(idx).getPhone();
+			// Toast.makeText(getApplicationContext(), msg,
+			// Toast.LENGTH_SHORT).show();
+			TextView addressView = (TextView) findViewById(R.id.address);
+//			addressView.setOnClickListener(new OnClickListener() {
+//
+//				@Override
+//				public void onClick(View v) {
+//					Intent callIntent = new Intent(Intent.ACTION_VIEW);
+//					Uri parse = Uri.parse("geo:"+address.trim());
+//					Log.i("PARSE", parse.toString());
+//					callIntent.setData(parse);
+//					startActivity(callIntent);
+//				}
+//			});
+			TextView phoneView = (TextView) findViewById(R.id.phone);
+			phoneView.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					Intent callIntent = new Intent(Intent.ACTION_DIAL);
+					Uri parse = Uri.parse(phone.trim());
+					Log.i("PARSE", parse.toString());
+					callIntent.setData(parse);
+					startActivity(callIntent);
+				}
+			});
+			addressView.setText(address);
+			addressView.setVisibility(TextView.VISIBLE);
+			phoneView.setText(phone.toUpperCase(Locale.ITALIAN));
+			phoneView.setVisibility(TextView.VISIBLE);
+		} else {
+			Toast.makeText(getApplicationContext(), "NESSUN INDIRIZZO TROVATO", Toast.LENGTH_SHORT).show();
+		}
+	}
+
 	private void cleanLayout() {
-		findViewById(R.id.notturno).setVisibility(TextView.INVISIBLE);
-		findViewById(R.id.festivo1).setVisibility(TextView.INVISIBLE);
-		findViewById(R.id.festivo2).setVisibility(TextView.INVISIBLE);
+		ListView lview = (ListView) findViewById(R.id.listView);
+		lview.setVisibility(ListView.INVISIBLE);
+		lview.setAdapter(null);
 		findViewById(R.id.address).setVisibility(TextView.INVISIBLE);
-		findViewById(R.id.LinearLayout2).setVisibility(TextView.INVISIBLE);
+		findViewById(R.id.LinearLayoutList).setVisibility(TextView.INVISIBLE);
 		findViewById(R.id.LinearLayoutMaps).setVisibility(TextView.INVISIBLE);
 	}
 
 	private void retrieveDate(Button dateTo) {
 		dateTo.setOnClickListener(new View.OnClickListener() {
+			@SuppressWarnings("deprecation")
 			public void onClick(View v) {
 				cleanLayout();
 				showDialog(0);
@@ -147,34 +178,8 @@ public class MainActivity extends Activity {
 		mDay = c.get(Calendar.DAY_OF_MONTH);
 	}
 
-	protected void showPharmDetail(TextView tView, final Farmacia pharm) {
-		tView.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				int idx = farmacie.indexOf(pharm);
-				if (idx > -1) {
-					findViewById(R.id.LinearLayoutMaps).setVisibility(
-							TextView.VISIBLE);
-					String msg = farmacie.get(idx).getWay();
-					// Toast.makeText(getApplicationContext(), msg,
-					// Toast.LENGTH_SHORT).show();
-					TextView address = (TextView) findViewById(R.id.address);
-					address.setText(msg);
-					address.setVisibility(TextView.VISIBLE);
-				} else {
-					Toast.makeText(getApplicationContext(),
-							"NESSUN INDIRIZZO TROVATO", Toast.LENGTH_SHORT)
-							.show();
-				}
-
-			}
-		});
-	}
-
 	protected DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
-		public void onDateSet(DatePicker view, int year, int monthOfYear,
-				int dayOfMonth) {
+		public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 			mYear = year;
 			mMonth = monthOfYear + 1;
 			mDay = dayOfMonth;
@@ -212,108 +217,11 @@ public class MainActivity extends Activity {
 
 	private void loadInputFile() {
 		if (master == null)
-			master = new HashMap<String, Schedule>();
-		readTextFile(this, getResources().getString(R.string.nomeFile));
+			master = InputDataSource.readTextFile(this, getResources().getString(R.string.nomeFile));
 		if (farmacie == null) {
-			farmacie = new ArrayList<Farmacia>();
+			farmacie = InputDataSource.readTextFilePharm(this, getResources().getString(R.string.nomeFileFarmacie));
 		}
-		readTextFilePharm(this,
-				getResources().getString(R.string.nomeFileFarmacie));
-		Toast.makeText(this, "Caricamento completato", Toast.LENGTH_LONG)
-				.show();
-	}
-
-	private void readTextFile(Context context, String fileName) {
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new InputStreamReader(context.getAssets()
-					.open(fileName)));
-			String line;
-			while ((line = in.readLine()) != null) {
-				StringTokenizer st = new StringTokenizer(line, ",", true);
-				while (st.hasMoreTokens()) {
-					Schedule s = new Schedule();
-					String day = checkToken(st);
-					addFarmacia(s, checkToken(st), "F");
-					addFarmacia(s, checkToken(st), "F");
-					addFarmacia(s, checkToken(st), "N");
-					master.put(day, s);
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					// Ignore
-				}
-			}
-		}
-	}
-
-	private void readTextFilePharm(Context context, String fileName) {
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new InputStreamReader(context.getAssets()
-					.open(fileName)));
-			String line;
-			Farmacia f = new Farmacia();
-			boolean start = true;
-			StringBuffer sb = new StringBuffer();
-			while ((line = in.readLine()) != null) {
-				// System.out.println(line);
-				if ("".equals(line)) {
-					f.setWay(sb.toString());
-					farmacie.add(f);
-					f = new Farmacia();
-					start = true;
-					sb = new StringBuffer();
-				} else if (start) {
-					start = false;
-					f.setName(line);
-				} else {
-					sb.append(line + "\n");
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					// Ignore
-				}
-			}
-		}
-	}
-
-	private void addFarmacia(Schedule s, String farName, String tipo) {
-		if (farName != null && !"".equals(farName)) {
-			Farmacia farmacia = new Farmacia();
-			farmacia.setName(farName);
-			if ("F".equals(tipo))
-				s.addFarmaciaInGiorniFestivi(farmacia);
-			else if ("N".equals(tipo))
-				s.addFarmaciaNotturno(farmacia);
-		}
-
-	}
-
-	private String checkToken(StringTokenizer st) {
-		if (st.hasMoreTokens()) {
-			String token = st.nextToken();
-			if (",".equals(token)) {
-				return "";
-			} else {
-				if (st.hasMoreTokens())
-					st.nextToken();
-				return token;
-			}
-		}
-		return null;
+		Toast.makeText(this, "Caricamento completato", Toast.LENGTH_LONG).show();
 	}
 
 }

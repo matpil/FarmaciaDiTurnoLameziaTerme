@@ -1,53 +1,45 @@
 package com.matpil.farmaciaditurno.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class Schedule {
 
-	private List<Farmacia> festivi;
-	private List<Farmacia> notturno;
+	private Map<String, Farmacia> schedule;
 
 	public Schedule() {
-		this.festivi = new ArrayList<Farmacia>();
-		this.notturno = new ArrayList<Farmacia>();
+		this.schedule = new HashMap<String, Farmacia>();
 	}
 
 	public void addFarmaciaInGiorniFestivi(Farmacia f) {
-		this.festivi.add(f);
+
+		String key = "FESTIVO";
+		if (this.schedule.containsKey(key)) {
+			key = "_" + key;
+		}
+		this.schedule.put(key, f);
 	}
 
 	public void addFarmaciaNotturno(Farmacia f) {
-		this.notturno.add(f);
+		String key = "NOTTURNO";
+		if (this.schedule.containsKey(key)) {
+			key = "_" + key;
+		}
+		this.schedule.put(key, f);
 	}
 
-	public List<Farmacia> getFestivi() {
-		return festivi;
-	}
-
-	public void setFestivi(List<Farmacia> festivi) {
-		this.festivi = festivi;
-	}
-
-	public List<Farmacia> getNotturno() {
-		return notturno;
-	}
-
-	public void setNotturno(List<Farmacia> notturno) {
-		this.notturno = notturno;
+	public Map<String, Farmacia> getSchedule() {
+		return schedule;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();	
-		sb.append("Festivi: ");
-		for (Farmacia farmacia : getFestivi()) {			
-			sb.append(farmacia.toString());
-			sb.append(";");
-		}
-		for (Farmacia farmacia : getNotturno()) {
-			sb.append(" - Notturno: ");
-			sb.append(farmacia.toString());
+		StringBuilder sb = new StringBuilder();
+		Set<String> keySet = this.schedule.keySet();
+		for (String key : keySet) {
+			sb.append(key).append(" - ");
+			sb.append(this.schedule.get(key)).append("\n");
 		}
 		return sb.toString();
 	}

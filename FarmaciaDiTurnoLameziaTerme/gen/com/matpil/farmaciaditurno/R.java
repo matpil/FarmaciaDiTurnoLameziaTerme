@@ -19,32 +19,33 @@ public final class R {
          */
         public static final int activity_horizontal_margin=0x7f040000;
         public static final int activity_vertical_margin=0x7f040001;
+        public static final int corner_radius=0x7f040002;
     }
     public static final class drawable {
         public static final int farmacia_logo=0x7f020000;
         public static final int glossy_button_blank_green_rectangle=0x7f020001;
-        public static final int green_button=0x7f020002;
-        public static final int green_button_2x=0x7f020003;
-        public static final int green_button_highlight=0x7f020004;
-        public static final int ic_launcher=0x7f020005;
+        public static final int ic_launcher=0x7f020002;
     }
     public static final class id {
         public static final int FarmaciaLogo=0x7f080002;
         public static final int LinearLayout=0x7f080000;
         public static final int LinearLayout1=0x7f080003;
-        public static final int LinearLayout2=0x7f080006;
+        public static final int LinearLayoutList=0x7f080006;
         public static final int LinearLayoutLogo=0x7f080001;
-        public static final int LinearLayoutMaps=0x7f08000a;
-        public static final int action_settings=0x7f08000c;
-        public static final int address=0x7f08000b;
+        public static final int LinearLayoutMaps=0x7f080009;
+        public static final int ScrollLinearLayoutMaps=0x7f080008;
+        public static final int action_settings=0x7f08000e;
+        public static final int address=0x7f08000a;
         public static final int dateToSearch=0x7f080004;
-        public static final int festivo1=0x7f080008;
-        public static final int festivo2=0x7f080009;
+        public static final int descPharm=0x7f08000d;
         public static final int finder=0x7f080005;
-        public static final int notturno=0x7f080007;
+        public static final int listView=0x7f080007;
+        public static final int phone=0x7f08000b;
+        public static final int tipoPharm=0x7f08000c;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
+        public static final int list_view_main=0x7f030001;
     }
     public static final class menu {
         public static final int main=0x7f070000;

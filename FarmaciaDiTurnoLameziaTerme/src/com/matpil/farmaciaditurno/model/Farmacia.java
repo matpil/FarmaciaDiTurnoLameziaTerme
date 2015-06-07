@@ -4,6 +4,19 @@ public class Farmacia {
 
 	private String name;
 	private String way;
+	private String phone;
+	
+	@Override
+	public String toString() {
+		return getName();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		Farmacia input = (Farmacia) o;
+		return this.getName().equals(input.getName());
+	}
+	
 
 	public String getName() {
 		return name;
@@ -21,14 +34,11 @@ public class Farmacia {
 		this.way = way;
 	}
 
-	@Override
-	public String toString() {
-		return getName();
+	public String getPhone() {
+		return phone;
 	}
-	
-	@Override
-	public boolean equals(Object o) {
-		Farmacia input = (Farmacia) o;
-		return this.getName().equals(input.getName());
+
+	public void setPhone(String phone) {
+		this.phone = phone;
 	}
 }
